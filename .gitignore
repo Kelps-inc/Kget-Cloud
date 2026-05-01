@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+.turbo/
+*.log
+.env
+.env.local
+.env.*.local
+target/
+*.lock~
+prisma/migrations/dev_*
+
+# Secrets — never commit
+*.pem
+*.key

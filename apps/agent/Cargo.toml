@@ -1,0 +1,26 @@
+[package]
+name = "kget-agent"
+version = "0.1.0"
+edition = "2021"
+description = "KGet Cloud Agent — local worker that polls the API and downloads files"
+
+[[bin]]
+name = "kget-agent"
+path = "src/main.rs"
+
+[dependencies]
+kget = "1.6.1"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "multipart", "stream"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+thiserror = "2"
+sha2 = "0.10"
+hex = "0.4"
+uuid = { version = "1", features = ["v4", "serde"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+directories = "6"
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }

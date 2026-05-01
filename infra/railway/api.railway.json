@@ -1,0 +1,10 @@
+{
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "apps/api/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "node dist/main",
+    "healthcheckPath": "/api/health"
+  }
+}
