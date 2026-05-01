@@ -3,13 +3,26 @@ dist/
 .next/
 .turbo/
 *.log
+
+# Environment — never commit real envs
 .env
 .env.local
 .env.*.local
+
+# Rust build artifacts
 target/
 *.lock~
+
+# Prisma dev migrations
 prisma/migrations/dev_*
 
 # Secrets — never commit
 *.pem
 *.key
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code local config (may contain API keys / tokens)
+.claude/
