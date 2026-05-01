@@ -1,0 +1,44 @@
+name: CD — Deploy to Railway
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false   # Never cancel an in-flight production deploy
+
+jobs:
+  # CI must pass before deploying (reuse the same checks)
+  deploy:
+    name: Deploy to Railway (production)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy API
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service api --detach
+
+      - name: Deploy Web
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service web --detach
+
+      - name: Run migrations in production
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd apps/api
+          npx prisma migrate deploy
+
+      - name: Notify deploy status
+        if: always()
+        run: |
+          echo "Deploy finished with status: ${{ job.status }}"

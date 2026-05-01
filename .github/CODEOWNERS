@@ -1,0 +1,8 @@
+# Owners padrão para todas as mudanças
+* @davimoreiraf
+
+# Arquivos críticos — sempre precisam de review do owner
+apps/api/prisma/schema.prisma @davimoreiraf
+apps/api/src/modules/identity/ @davimoreiraf
+apps/api/src/modules/organizations/ @davimoreiraf
+.github/ @davimoreiraf
