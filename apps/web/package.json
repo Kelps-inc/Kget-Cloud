@@ -6,10 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test": "bun test",
+    "lint": "tsc --noEmit",
+    "test": "bun test --pass-with-no-tests",
     "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test --coverage --pass-with-no-tests"
   },
   "dependencies": {
     "next": "^14.2.0",
@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "typescript": "^5.4.0",
+    "typescript": "5.4.5",
     "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",

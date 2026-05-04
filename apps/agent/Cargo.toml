@@ -9,7 +9,7 @@ name = "kget-agent"
 path = "src/main.rs"
 
 [dependencies]
-kget = "1.6.1"
+kget = { package = "Kget", version = "1.6.1" }
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.12", features = ["json", "multipart", "stream"] }
 serde = { version = "1", features = ["derive"] }

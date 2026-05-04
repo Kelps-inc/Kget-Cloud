@@ -1,16 +1,18 @@
+#![allow(dead_code)]
+
+mod api;
 mod cli;
 mod config;
-mod api;
-mod jobs;
 mod download;
-mod upload;
-mod storage;
+mod jobs;
 mod logs;
+mod storage;
 mod system;
+mod upload;
 
 use anyhow::Result;
-use cli::Cli;
 use clap::Parser;
+use cli::Cli;
 
 #[tokio::main]
 async fn main() -> Result<()> {

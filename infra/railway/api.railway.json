@@ -4,7 +4,7 @@
     "dockerfilePath": "apps/api/Dockerfile"
   },
   "deploy": {
-    "startCommand": "node dist/main",
+    "startCommand": "bunx prisma migrate deploy && node dist/main",
     "healthcheckPath": "/api/health"
   }
 }

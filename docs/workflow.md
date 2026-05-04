@@ -52,7 +52,7 @@ Configure em **Settings → Branches → Branch protection rules** para `main` e
 
 - [x] Require a pull request before merging
 - [x] Require approvals: **1**
-- [x] Require status checks to pass: `lint`, `test-api`, `test-web`, `test-agent`
+- [x] Require status checks to pass: `Lint & Type-check`, `API Tests (Bun)`, `Web Tests (Bun)`, `Rust Agent (cargo test)`, `Railway Docker build`
 - [x] Require branches to be up to date before merging
 - [x] Do not allow bypassing the above settings
 
@@ -64,6 +64,8 @@ Configure em **Railway → Project → Variables** (nunca no código):
 DATABASE_URL
 REDIS_URL
 JWT_SECRET
+API_URL
+WEB_URL
 OPENAI_API_KEY
 ABACATEPAY_API_KEY
 ABACATEPAY_WEBHOOK_SECRET
@@ -79,9 +81,53 @@ R2_BUCKET
 Configure em **GitHub → Settings → Secrets and variables → Actions**:
 
 ```
-RAILWAY_TOKEN     → token do Railway CLI para deploy
-DATABASE_URL      → URL do banco de produção (para migrate deploy)
+RAILWAY_TOKEN     → Project Token do Railway para o ambiente de produção
+DATABASE_URL      → valor de DATABASE_PUBLIC_URL do PostgreSQL Railway (para migrate deploy no GitHub Actions)
 ```
+
+Configure também em **Variables → Repository variables** se os serviços no Railway não se chamarem exatamente `api` e `web`:
+
+```
+RAILWAY_API_SERVICE=@kget-cloud/api
+RAILWAY_WEB_SERVICE=@kget-cloud/web
+```
+
+No Railway, cada serviço deve apontar para seu arquivo:
+
+```
+API → infra/railway/api.railway.json
+Web → infra/railway/web.railway.json
+```
+
+Os start commands esperados são:
+
+```
+API → bunx prisma migrate deploy && node dist/main
+Web → node apps/web/server.js
+```
+
+### Setup automatizado do GitHub
+
+Com o `gh` autenticado em uma conta com permissão de admin no repositório, é possível aplicar os secrets, variables e branch protection com:
+
+```bash
+gh auth login -h github.com -s repo,workflow
+
+export RAILWAY_TOKEN="..."
+export DATABASE_URL="..."
+export RAILWAY_API_SERVICE="api"
+export RAILWAY_WEB_SERVICE="web"
+
+bash scripts/configure-github-ci.sh
+```
+
+Se o repositório privado ainda não tiver GitHub Pro, pule a proteção de branch por enquanto:
+
+```bash
+SKIP_BRANCH_PROTECTION=1 bash scripts/configure-github-ci.sh
+```
+
+Use um Project Token criado em **Railway → Project → Settings → Tokens**, porque o CLI usa `RAILWAY_TOKEN` para ações de projeto em CI/CD. Para o secret `DATABASE_URL` do GitHub, copie o valor público do PostgreSQL do Railway (`DATABASE_PUBLIC_URL`), já que o `prisma migrate deploy` roda fora da rede Railway. Dentro dos serviços Railway, mantenha a variável `DATABASE_URL` interna/privada. Se algum valor apareceu em print, gere um novo token/senha antes de configurar produção.
 
 ## Para o dev junior
 

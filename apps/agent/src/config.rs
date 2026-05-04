@@ -35,9 +35,11 @@ pub fn config_path() -> PathBuf {
 }
 
 pub fn save_config(token: &str, api_url: &str) -> Result<()> {
-    let mut config = AgentConfig::default();
-    config.token = token.to_string();
-    config.api_url = api_url.to_string();
+    let config = AgentConfig {
+        token: token.to_string(),
+        api_url: api_url.to_string(),
+        ..AgentConfig::default()
+    };
 
     let path = config_path();
     if let Some(parent) = path.parent() {
