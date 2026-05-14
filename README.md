@@ -1,6 +1,8 @@
 # KGet Cloud
 
-> Automate recurring file collection, monitor downloads, and transform PDFs, HTMLs, XMLs, TXT files, CSVs, and manuals into an AI-searchable knowledge base.
+> Monitor recurring document sources, detect changes, preserve audit evidence, and transform PDFs, HTMLs, XMLs, TXT files, CSVs, and manuals into an AI-searchable knowledge base.
+
+KGet Cloud is not positioned as another file drive. Its SaaS wedge is operational document intelligence: collect recurring files from URLs, local agents, and legacy sources; prove what changed; keep source logs and hashes; then let teams ask questions against the indexed evidence.
 
 ## Architecture
 
@@ -50,9 +52,19 @@ pnpm dev
 ## MVP Build Phases
 
 1. **Phase 1** — Auth + manual upload + RAG + chat
-2. **Phase 2** — URL sources + download jobs + BullMQ
-3. **Phase 3** — Rust agent + polling + kget adapter
-4. **Phase 4** — Monitoring, WebSocket logs, alerts
+2. **Phase 2** — URL sources + run-now collection + change detection + audit report
+3. **Phase 3** — Rust agent registration + polling protocol + kget adapter
+4. **Phase 4** — Scheduling, BullMQ processors, WebSocket logs, alerts, billing
+
+## Demo vertical
+
+The dashboard starts at **Monitor**:
+
+1. Add up to 20 recurring URL sources.
+2. Run collection to download the current version.
+3. KGet stores the file only when the SHA-256 hash changes.
+4. The audit report shows source status, recent jobs, errors, and evidence files.
+5. Indexed evidence is available in the document chat with source citations.
 
 ## License
 

@@ -1,5 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
+import { OrganizationsController } from "./presentation/organizations.controller";
 
-// TODO: wire use-cases, repositories, and controllers (Phase 1)
-@Module({})
+@Module({
+  controllers: [OrganizationsController],
+})
 export class OrganizationsModule {}

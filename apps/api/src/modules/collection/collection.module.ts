@@ -1,11 +1,17 @@
-import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
-import { QUEUE_NAMES } from '@shared/infrastructure/queue/queue-names';
+import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
+import { QUEUE_NAMES } from "@shared/infrastructure/queue/queue-names";
+import { KnowledgeModule } from "@modules/knowledge/knowledge.module";
+import { CollectionService } from "./application/collection.service";
+import { SourcesController } from "./presentation/sources.controller";
 
-// TODO: wire sources, download-jobs, BullMQ processor, and agent runtime controller (Phase 2)
 @Module({
   imports: [
+    KnowledgeModule,
     BullModule.registerQueue({ name: QUEUE_NAMES.DOWNLOAD }),
   ],
+  providers: [CollectionService],
+  controllers: [SourcesController],
+  exports: [CollectionService],
 })
 export class CollectionModule {}

@@ -1,0 +1,10 @@
+{
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "apps/api/Dockerfile"
+  },
+  "deploy": {
+    "startCommand": "bunx prisma migrate deploy && node dist/main",
+    "healthcheckPath": "/api/health"
+  }
+}

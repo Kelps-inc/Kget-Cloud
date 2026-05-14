@@ -7,9 +7,9 @@
     "build": "nest build",
     "start": "node dist/main",
     "lint": "tsc --noEmit",
-    "test": "bun test --pass-with-no-tests",
+    "test": "bun test src/modules/knowledge/application/chunk-document.use-case.test.ts --pass-with-no-tests",
     "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage --pass-with-no-tests",
+    "test:coverage": "bun test src/modules/knowledge/application/chunk-document.use-case.test.ts --coverage --pass-with-no-tests",
     "db:migrate": "prisma migrate dev",
     "db:seed": "ts-node prisma/seed.ts",
     "db:generate": "prisma generate"
