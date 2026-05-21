@@ -11,6 +11,9 @@ import { Prisma } from "@prisma/client";
 import * as crypto from "crypto";
 
 const SERVER_RUN_TYPES = new Set(["url"]);
+const isServerless = Boolean(
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME,
+);
 
 function inferMimeType(contentType: string | null, fileName: string): string {
   if (contentType) return contentType.split(";")[0].trim();
@@ -155,7 +158,11 @@ export class CollectionService {
           : "First version stored",
       );
 
-      setImmediate(() => this.processFile.execute(asset.id));
+      if (isServerless) {
+        await this.processFile.execute(asset.id);
+      } else {
+        setImmediate(() => this.processFile.execute(asset.id));
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown collection error";
@@ -213,7 +220,11 @@ export class CollectionService {
         },
       });
       assetId = asset.id;
-      setImmediate(() => this.processFile.execute(asset.id));
+      if (isServerless) {
+        await this.processFile.execute(asset.id);
+      } else {
+        setImmediate(() => this.processFile.execute(asset.id));
+      }
     }
 
     await this.prisma.downloadJob.update({

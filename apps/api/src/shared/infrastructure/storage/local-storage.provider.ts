@@ -5,7 +5,9 @@ import * as path from "path";
 
 @Injectable()
 export class LocalStorageProvider implements StorageProvider {
-  private readonly baseDir = process.env.STORAGE_LOCAL_DIR ?? "./uploads";
+  private readonly baseDir =
+    process.env.STORAGE_LOCAL_DIR ??
+    (process.env.VERCEL ? "/tmp/kget-cloud/uploads" : "./uploads");
 
   async upload(
     key: string,

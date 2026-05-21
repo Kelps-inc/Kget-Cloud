@@ -10,10 +10,14 @@ import { CollectionModule } from "@modules/collection/collection.module";
 import { KnowledgeModule } from "@modules/knowledge/knowledge.module";
 import { LogsModule } from "@modules/logs/logs.module";
 
+const queueImports = process.env.REDIS_URL
+  ? [BullModule.forRoot({ connection: { url: process.env.REDIS_URL } })]
+  : [];
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    BullModule.forRoot({ connection: { url: process.env.REDIS_URL } }),
+    ...queueImports,
     PrismaModule,
     StorageModule,
     IdentityModule,
