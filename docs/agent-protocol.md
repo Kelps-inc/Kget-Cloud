@@ -29,3 +29,24 @@ Agent management endpoints are prefixed with `/api/agents/` and authenticated wi
 8. Upload file to API
 9. Complete or fail job
 10. Repeat
+
+## Local run
+
+Create an agent in the Monitor page, copy the one-time token, then configure and
+start the local worker:
+
+```bash
+cd apps/agent
+cargo run -- login --token <agent-token> --api-url https://kget-cloud-api.vercel.app
+cargo run -- start
+```
+
+Sources created as `agent_url` are queued for local agents. The agent only
+downloads `http` and `https` URLs by default, stores temporary downloads under
+`~/KGetDownloads`, reports progress/logs to the API, sends SHA-256 and size
+metadata on completion, and lets the API verify those values before storing the
+file as evidence.
+
+Local file collection is opt-in. To collect files from disk, edit the generated
+config file shown by `kget-agent login`, set `allow_local_files = true`, and add
+only the folders the agent may read to `allowed_local_roots`.

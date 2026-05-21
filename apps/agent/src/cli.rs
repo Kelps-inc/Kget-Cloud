@@ -30,11 +30,16 @@ impl Cli {
             }
             Commands::Start => {
                 tracing::info!("Starting KGet Agent...");
-                // TODO: load config, authenticate, start polling loop
-                println!("Agent start loop — not yet implemented. See Linear issue KGE-XX.");
+                let config = crate::config::load_config()?;
+                crate::jobs::run_loop(config).await?;
             }
             Commands::Status => {
-                println!("Status — not yet implemented.");
+                let config = crate::config::load_config()?;
+                println!("API: {}", config.api_url);
+                println!("Workspace: {}", config.workspace_dir);
+                println!("Downloads: {}", config.download_dir);
+                println!("Poll interval: {}s", config.poll_interval_seconds);
+                println!("Local files enabled: {}", config.allow_local_files);
             }
             Commands::Logs => {
                 println!("Logs — not yet implemented.");

@@ -132,6 +132,8 @@ export class AgentRuntimeController {
       originalName: dto.originalName,
       mimeType: dto.mimeType,
       buffer: Buffer.from(dto.base64, "base64"),
+      sha256: dto.sha256,
+      sizeBytes: dto.sizeBytes,
     });
   }
 

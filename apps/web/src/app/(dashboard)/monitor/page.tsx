@@ -8,6 +8,7 @@ import {
   CheckCircle,
   Clock,
   Copy,
+  Download,
   KeyRound,
   Loader2,
   Play,
@@ -17,6 +18,17 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
+
+const AGENT_RELEASE_BASE =
+  "https://github.com/Kelps-inc/Kget-Cloud/releases/latest/download";
+
+const AGENT_PLATFORMS = [
+  { label: "macOS (Apple Silicon)", file: "kget-agent-macos-arm64" },
+  { label: "macOS (Intel)", file: "kget-agent-macos-x64" },
+  { label: "Linux x64", file: "kget-agent-linux-x64" },
+  { label: "Linux ARM64", file: "kget-agent-linux-arm64" },
+  { label: "Windows x64", file: "kget-agent-windows-x64.exe" },
+];
 
 const JOB_BADGE: Record<string, string> = {
   queued: "bg-gray-100 text-gray-600",
@@ -109,8 +121,12 @@ export default function MonitorPage() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
+  const [sourceType, setSourceType] = useState<"url" | "agent_url">(
+    "agent_url",
+  );
   const [agentName, setAgentName] = useState("");
   const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [commandCopied, setCommandCopied] = useState(false);
   const [runningSourceId, setRunningSourceId] = useState<string | null>(null);
 
   const { data: sources = [], isLoading: loadingSources } = useQuery({
@@ -138,7 +154,7 @@ export default function MonitorPage() {
   });
 
   const createSource = useMutation({
-    mutationFn: () => sourcesApi.create({ name, url, type: "url" }),
+    mutationFn: () => sourcesApi.create({ name, url, type: sourceType }),
     onSuccess: () => {
       setName("");
       setUrl("");
@@ -233,7 +249,7 @@ export default function MonitorPage() {
               event.preventDefault();
               if (canCreate) createSource.mutate();
             }}
-            className="grid gap-3 border-b border-gray-200 bg-gray-50 px-5 py-4 md:grid-cols-[180px_1fr_auto]"
+            className="grid gap-3 border-b border-gray-200 bg-gray-50 px-5 py-4 md:grid-cols-[180px_1fr_150px_auto]"
           >
             <input
               value={name}
@@ -247,6 +263,17 @@ export default function MonitorPage() {
               placeholder="https://example.com/manual.pdf"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
+            <select
+              value={sourceType}
+              onChange={(event) =>
+                setSourceType(event.target.value as "url" | "agent_url")
+              }
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              title="Collection mode"
+            >
+              <option value="agent_url">Local agent</option>
+              <option value="url">Server</option>
+            </select>
             <button
               type="submit"
               disabled={!canCreate || createSource.isPending}
@@ -314,13 +341,32 @@ export default function MonitorPage() {
                 </button>
               </form>
               {createdToken && (
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-blue-800">
-                    <ShieldCheck size={14} /> New agent token
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-green-800">
+                    <ShieldCheck size={14} /> Token created — run these commands
                   </div>
-                  <code className="block break-all text-xs text-blue-900">
-                    {createdToken}
-                  </code>
+                  <pre className="overflow-x-auto rounded bg-white/70 p-2 text-xs text-green-900">
+                    <span className="block">
+                      kget-agent login --token {createdToken}
+                    </span>
+                    <span className="block">kget-agent start</span>
+                  </pre>
+                  <button
+                    onClick={() => {
+                      void navigator.clipboard
+                        .writeText(
+                          `kget-agent login --token ${createdToken}\nkget-agent start`,
+                        )
+                        .then(() => {
+                          setCommandCopied(true);
+                          setTimeout(() => setCommandCopied(false), 2000);
+                        });
+                    }}
+                    className="mt-2 flex items-center gap-1 text-xs text-green-700 hover:text-green-900"
+                  >
+                    <Copy size={12} />
+                    {commandCopied ? "Copied!" : "Copy commands"}
+                  </button>
                 </div>
               )}
               <div className="space-y-2">
@@ -340,6 +386,22 @@ export default function MonitorPage() {
                     <Server size={15} className="text-gray-400" />
                   </div>
                 ))}
+              </div>
+              <div className="border-t border-gray-100 pt-3">
+                <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                  <Download size={12} /> Download agent
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {AGENT_PLATFORMS.map((platform) => (
+                    <a
+                      key={platform.file}
+                      href={`${AGENT_RELEASE_BASE}/${platform.file}`}
+                      className="rounded border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      {platform.label}
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

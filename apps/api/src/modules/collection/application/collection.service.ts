@@ -251,7 +251,13 @@ export class CollectionService {
   async completeAgentJob(
     organizationId: string,
     jobId: string,
-    input: { originalName: string; mimeType: string; buffer: Buffer },
+    input: {
+      originalName: string;
+      mimeType: string;
+      buffer: Buffer;
+      sha256?: string;
+      sizeBytes?: number;
+    },
   ) {
     const job = await this.prisma.downloadJob.findFirst({
       where: { id: jobId, organizationId },
@@ -262,6 +268,20 @@ export class CollectionService {
       .createHash("sha256")
       .update(input.buffer)
       .digest("hex");
+    if (input.sha256 && input.sha256 !== sha256) {
+      throw new BadRequestException(
+        "Agent SHA-256 does not match uploaded file",
+      );
+    }
+    if (
+      input.sizeBytes !== undefined &&
+      input.sizeBytes !== input.buffer.length
+    ) {
+      throw new BadRequestException(
+        "Agent sizeBytes does not match uploaded file",
+      );
+    }
+
     const previous = await this.prisma.fileAsset.findFirst({
       where: { organizationId, sourceId: job.sourceId },
       orderBy: { createdAt: "desc" },

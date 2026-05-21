@@ -7,6 +7,14 @@ import { PrismaService } from "@shared/infrastructure/database/prisma.service";
 import { CreateAgentDto } from "./agents.dto";
 import * as crypto from "crypto";
 
+const DEFAULT_AGENT_OFFLINE_AFTER_MS = 90_000;
+
+function agentOfflineAfterMs() {
+  return Number(
+    process.env.AGENT_OFFLINE_AFTER_MS ?? DEFAULT_AGENT_OFFLINE_AFTER_MS,
+  );
+}
+
 @ApiTags("agents")
 @Controller("agents")
 @UseGuards(JwtAuthGuard)
@@ -29,6 +37,15 @@ export class AgentsController {
 
   @Get()
   async list(@CurrentUser() user: AuthenticatedUser) {
+    await this.prisma.agent.updateMany({
+      where: {
+        organizationId: user.organizationId,
+        status: "online",
+        lastSeenAt: { lt: new Date(Date.now() - agentOfflineAfterMs()) },
+      },
+      data: { status: "offline" },
+    });
+
     return this.prisma.agent.findMany({
       where: { organizationId: user.organizationId },
       orderBy: { createdAt: "desc" },

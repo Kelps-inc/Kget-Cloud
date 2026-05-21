@@ -2,6 +2,8 @@ use anyhow::Result;
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -12,6 +14,10 @@ pub struct AgentConfig {
     pub workspace_dir: String,
     pub download_dir: String,
     pub log_level: String,
+    pub poll_interval_seconds: u64,
+    pub max_file_bytes: u64,
+    pub allow_local_files: bool,
+    pub allowed_local_roots: Vec<String>,
 }
 
 impl Default for AgentConfig {
@@ -24,6 +30,10 @@ impl Default for AgentConfig {
             workspace_dir: format!("{}/.kget-agent", home),
             download_dir: format!("{}/KGetDownloads", home),
             log_level: "info".into(),
+            poll_interval_seconds: 10,
+            max_file_bytes: 50 * 1024 * 1024,
+            allow_local_files: false,
+            allowed_local_roots: vec![format!("{}/KGetSources", home)],
         }
     }
 }
@@ -46,6 +56,8 @@ pub fn save_config(token: &str, api_url: &str) -> Result<()> {
         fs::create_dir_all(parent)?;
     }
     fs::write(&path, toml::to_string_pretty(&config)?)?;
+    #[cfg(unix)]
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o600))?;
     println!("Config saved to {}", path.display());
     Ok(())
 }
