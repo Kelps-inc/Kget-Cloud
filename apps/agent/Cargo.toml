@@ -9,6 +9,7 @@ name = "kget-agent"
 path = "src/main.rs"
 
 [dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
 kget = { package = "Kget", version = "1.6.1" }
 tokio = { version = "1", features = ["full"] }
 reqwest = { version = "0.12", features = ["json", "multipart", "stream"] }
