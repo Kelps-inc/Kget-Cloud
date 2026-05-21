@@ -25,6 +25,19 @@ const ALLOWED_MIME_TYPES = new Set([
   "text/xml",
 ]);
 
+function inferMimeType(originalName: string, reportedMimeType: string) {
+  if (ALLOWED_MIME_TYPES.has(reportedMimeType)) return reportedMimeType;
+  const lowerName = originalName.toLowerCase();
+  if (lowerName.endsWith(".pdf")) return "application/pdf";
+  if (lowerName.endsWith(".html") || lowerName.endsWith(".htm"))
+    return "text/html";
+  if (lowerName.endsWith(".csv")) return "text/csv";
+  if (lowerName.endsWith(".xml")) return "application/xml";
+  if (lowerName.endsWith(".txt") || lowerName.endsWith(".md"))
+    return "text/plain";
+  return "text/plain";
+}
+
 @ApiTags("files")
 @Controller("files")
 @UseGuards(JwtAuthGuard)
@@ -45,9 +58,7 @@ export class FilesController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     if (!file) throw new Error("No file provided");
-    const mimeType = ALLOWED_MIME_TYPES.has(file.mimetype)
-      ? file.mimetype
-      : "text/plain";
+    const mimeType = inferMimeType(file.originalname, file.mimetype);
     return this.uploadFile.execute({
       organizationId: user.organizationId,
       originalName: file.originalname,
@@ -68,6 +79,7 @@ export class FilesController {
         sizeBytes: true,
         sha256: true,
         status: true,
+        processingError: true,
         createdAt: true,
         _count: { select: { documentChunks: true } },
       },

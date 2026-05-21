@@ -55,34 +55,42 @@ function FileCard({
 }) {
   const badge = STATUS_BADGE[file.status] ?? STATUS_BADGE.stored;
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
-          <FileText size={20} className="text-blue-600" />
+    <div className="rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+            <FileText size={20} className="text-blue-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="max-w-xs truncate text-sm font-medium text-gray-800">
+              {file.originalName}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              {formatBytes(file.sizeBytes)} · {file.chunkCount ?? 0} chunks ·{" "}
+              {new Date(file.createdAt).toLocaleDateString()}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="max-w-xs truncate text-sm font-medium text-gray-800">
-            {file.originalName}
-          </p>
-          <p className="mt-0.5 text-xs text-gray-400">
-            {formatBytes(file.sizeBytes)} · {file.chunkCount ?? 0} chunks ·{" "}
-            {new Date(file.createdAt).toLocaleDateString()}
-          </p>
+        <div className="flex shrink-0 items-center gap-3">
+          <span
+            className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}
+          >
+            {badge.icon} {badge.label}
+          </span>
+          <button
+            onClick={onDelete}
+            title="Delete file"
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+          >
+            <Trash2 size={15} />
+          </button>
         </div>
       </div>
-      <div className="flex items-center gap-3">
-        <span
-          className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${badge.className}`}
-        >
-          {badge.icon} {badge.label}
-        </span>
-        <button
-          onClick={onDelete}
-          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
-        >
-          <Trash2 size={15} />
-        </button>
-      </div>
+      {file.status === "error" && file.processingError && (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+          {file.processingError}
+        </p>
+      )}
     </div>
   );
 }

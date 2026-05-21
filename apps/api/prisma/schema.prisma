@@ -111,6 +111,7 @@ model FileAsset {
   sizeBytes         BigInt
   sha256            String
   status            String    @default("stored")
+  processingError   String?
   extractedTextPath String?
   createdAt         DateTime  @default(now())
 

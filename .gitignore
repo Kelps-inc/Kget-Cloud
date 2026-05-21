@@ -8,6 +8,8 @@ coverage/
 
 # Environment — never commit real envs
 .env
+.env.*
+.env.example
 .env.local
 .env.*.local
 
@@ -28,3 +30,16 @@ prisma/migrations/dev_*
 
 # Claude Code local config (may contain API keys / tokens)
 .claude/
+.openclaw
+.openclaw-cli-images
+.github
+.codex
+.vercel
+
+AGENTS.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+CLAUDE.md
+USER.md
+TOOLS.md

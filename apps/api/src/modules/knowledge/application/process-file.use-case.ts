@@ -26,7 +26,7 @@ export class ProcessFileUseCase {
 
     await this.prisma.fileAsset.update({
       where: { id: fileId },
-      data: { status: "processing" },
+      data: { status: "processing", processingError: null },
     });
 
     try {
@@ -68,10 +68,12 @@ export class ProcessFileUseCase {
       });
       this.logger.log(`File ${fileId} indexed successfully`);
     } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unknown processing error";
       this.logger.error(`File ${fileId} processing failed`, err);
       await this.prisma.fileAsset.update({
         where: { id: fileId },
-        data: { status: "error" },
+        data: { status: "error", processingError: message.slice(0, 1000) },
       });
     }
   }

@@ -1,0 +1,14 @@
+node_modules
+**/node_modules
+.next
+**/.next
+target
+**/target
+.turbo
+**/.turbo
+.git
+uploads
+**/uploads
+.env*
+*.log
+.DS_Store

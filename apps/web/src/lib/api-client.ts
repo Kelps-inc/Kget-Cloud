@@ -123,6 +123,7 @@ export interface FileAsset {
   sizeBytes: string;
   sha256: string;
   status: "stored" | "processing" | "indexed" | "error";
+  processingError?: string | null;
   chunkCount?: number;
   createdAt: string;
 }

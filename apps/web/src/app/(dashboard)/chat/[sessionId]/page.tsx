@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatApi, type ChatMessage } from "@/lib/api-client";
 import { Send, Loader2, ArrowLeft, User, Zap } from "lucide-react";
@@ -56,9 +56,9 @@ function Message({
 export default function SessionPage({
   params,
 }: {
-  params: Promise<{ sessionId: string }>;
+  params: { sessionId: string };
 }) {
-  const { sessionId } = use(params);
+  const { sessionId } = params;
   const router = useRouter();
   const qc = useQueryClient();
   const bottomRef = useRef<HTMLDivElement>(null);

@@ -13,6 +13,33 @@ const SYSTEM_PROMPT = `You are a helpful assistant that answers questions based 
 Always base your answers on the context provided. If the answer is not in the context, say so clearly.
 Be concise and precise. When relevant, indicate which part of the document supports your answer.`;
 
+function buildExtractiveAnswer(
+  question: string,
+  chunks: { content: string }[],
+) {
+  if (chunks.length === 0) {
+    return [
+      "Nao encontrei trechos indexados relacionados a essa pergunta.",
+      "Verifique se os documentos terminaram de processar e tente novamente.",
+    ].join(" ");
+  }
+
+  const excerpts = chunks
+    .slice(0, 3)
+    .map((chunk, index) => {
+      const content = chunk.content.replace(/\s+/g, " ").trim();
+      return `[${index + 1}] ${content.slice(0, 700)}${content.length > 700 ? "..." : ""}`;
+    })
+    .join("\n\n");
+
+  return [
+    "Modo gratuito/extrativo ativo: ainda nao ha um provedor de LLM configurado para gerar uma resposta sintetizada.",
+    `Pergunta: ${question}`,
+    "Trechos mais relevantes encontrados:",
+    excerpts,
+  ].join("\n\n");
+}
+
 @Injectable()
 export class RagChatUseCase {
   constructor(
@@ -46,11 +73,12 @@ export class RagChatUseCase {
       .join("\n\n");
 
     // 4. Load recent history (last 6 messages)
-    const history = await this.prisma.chatMessage.findMany({
+    const recentHistory = await this.prisma.chatMessage.findMany({
       where: { sessionId: input.sessionId },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
       take: 6,
     });
+    const history = recentHistory.reverse();
 
     const messages: {
       role: "system" | "user" | "assistant";
@@ -61,17 +89,17 @@ export class RagChatUseCase {
         role: "system",
         content: `Relevant document excerpts:\n\n${context || "No relevant documents found."}`,
       },
-      ...history
-        .slice(0, -1)
-        .map((m: { role: string; content: string }) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        })),
+      ...history.slice(0, -1).map((m: { role: string; content: string }) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
       { role: "user", content: input.content },
     ];
 
-    // 5. Call OpenAI
-    const answer = await this.openai.chat(messages);
+    // 5. Call the configured LLM, or use the free extractive fallback.
+    const answer = this.openai.hasChatCompletion
+      ? await this.openai.chat(messages)
+      : buildExtractiveAnswer(input.content, chunks);
 
     // 6. Save assistant message with source references
     const sourceIds = chunks.map((c) => c.id);

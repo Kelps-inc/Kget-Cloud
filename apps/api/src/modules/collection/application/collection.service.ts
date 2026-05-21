@@ -11,9 +11,24 @@ import { Prisma } from "@prisma/client";
 import * as crypto from "crypto";
 
 const SERVER_RUN_TYPES = new Set(["url"]);
+const DEFAULT_MAX_COLLECTION_BYTES = 50 * 1024 * 1024;
+const DEFAULT_COLLECTION_TIMEOUT_MS = 60_000;
+const STALE_RUNNING_JOB_MS = 5 * 60_000;
 const isServerless = Boolean(
   process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME,
 );
+
+function maxCollectionBytes() {
+  return Number(
+    process.env.COLLECTION_MAX_BYTES ?? DEFAULT_MAX_COLLECTION_BYTES,
+  );
+}
+
+function collectionTimeoutMs() {
+  return Number(
+    process.env.COLLECTION_TIMEOUT_MS ?? DEFAULT_COLLECTION_TIMEOUT_MS,
+  );
+}
 
 function inferMimeType(contentType: string | null, fileName: string): string {
   if (contentType) return contentType.split(";")[0].trim();
@@ -72,6 +87,41 @@ export class CollectionService {
     return job;
   }
 
+  async markStaleJobs(organizationId: string) {
+    const staleBefore = new Date(Date.now() - STALE_RUNNING_JOB_MS);
+    const staleJobs = await this.prisma.downloadJob.findMany({
+      where: {
+        organizationId,
+        status: "running",
+        startedAt: { lt: staleBefore },
+      },
+      select: { id: true },
+    });
+
+    if (staleJobs.length === 0) return;
+
+    await this.prisma.downloadJob.updateMany({
+      where: { id: { in: staleJobs.map((job) => job.id) } },
+      data: {
+        status: "failed",
+        finishedAt: new Date(),
+        errorMessage:
+          "Collection exceeded the MVP timeout and was marked as failed.",
+      },
+    });
+
+    await Promise.all(
+      staleJobs.map((job) =>
+        this.log(
+          organizationId,
+          job.id,
+          "error",
+          "Collection exceeded the MVP timeout and was marked as failed.",
+        ),
+      ),
+    );
+  }
+
   async runServerUrlJob(jobId: string): Promise<void> {
     const startedAt = Date.now();
     const job = await this.prisma.downloadJob.findUniqueOrThrow({
@@ -81,14 +131,30 @@ export class CollectionService {
     const url = (job.source.configJson as { url?: string }).url;
     if (!url) throw new BadRequestException("Source URL is missing");
 
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
       await this.log(job.organizationId, job.id, "info", `Downloading ${url}`);
-      const response = await fetch(url);
+      const controller = new AbortController();
+      timeout = setTimeout(() => controller.abort(), collectionTimeoutMs());
+
+      const response = await fetch(url, { signal: controller.signal });
       if (!response.ok)
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
 
+      const contentLength = response.headers.get("content-length");
+      if (contentLength && Number(contentLength) > maxCollectionBytes()) {
+        throw new Error(
+          `File is too large for the MVP collector (${contentLength} bytes). Limit: ${maxCollectionBytes()} bytes.`,
+        );
+      }
+
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      if (buffer.length > maxCollectionBytes()) {
+        throw new Error(
+          `File is too large for the MVP collector (${buffer.length} bytes). Limit: ${maxCollectionBytes()} bytes.`,
+        );
+      }
       const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
 
       const previous = await this.prisma.fileAsset.findFirst({
@@ -177,6 +243,8 @@ export class CollectionService {
         },
       });
       await this.log(job.organizationId, job.id, "error", message);
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
   }
 

@@ -157,19 +157,22 @@ Update the relevant vault notes after:
 ```
 _context/                        Agent entry points (read these first)
   claude-context.md              Context for Claude Code — start here
-  Project Index - KGet.md        Quick map for KGet Cloud / kget crate
+  Project Index - KGet Cloud.md  Quick map for this project
+  Project Index - KGet.md        Quick map for the kget crate (used by apps/agent)
 
 00 - Mapas/                      High-level mind maps per project
 01 - Projetos/                   One note per project (narrative overview)
+  KGetCloud/
+    KGet Cloud.md
+    MVP - Roteiro KGet Cloud.md  Phase status and pending work
 02 - Arquitetura/                Architecture notes per project / layer
 03 - Dominios/                   Domain knowledge (concepts, rules, invariants)
 04 - Agentes/                    Agent usage rules and onboarding guides
   Como Usar Este Vault com Agentes.md
   Regras de Implementacao para Agentes.md
-05 - Decisoes/                   ADRs and roadmaps
-  Decisao - Segundo Cerebro como Contexto de Agentes.md
-  Roadmap - KGet.md
+05 - Decisoes/                   ADRs only (roadmaps live in 01 - Projetos)
 99 - Templates/                  Templates for new architecture/decision notes
+07 - Runbooks/                   Operational runbooks (local setup, release)
 ```
 
 ### Recommended Reading Order for KGet Cloud
@@ -178,8 +181,9 @@ _context/                        Agent entry points (read these first)
 2. `_context/Project Index - KGet Cloud.md` — quick map of this project (bounded contexts, commands, agent protocol)
 3. `02 - Arquitetura/Arquitetura - KGet Cloud.md` — layered DDD architecture, module responsibilities, data schema
 4. `03 - Dominios/Dominio - Coleta e RAG.md` — domain invariants for collection, jobs, embeddings and RAG
-5. `_context/Project Index - KGet.md` — quick map of the kget crate (used by `apps/agent`)
-6. `04 - Agentes/Regras de Implementacao para Agentes.md` — implementation checklist
+5. `01 - Projetos/KGetCloud/MVP - Roteiro KGet Cloud.md` — what is done (Fase 1) and what is pending (Fase 2)
+6. `_context/Project Index - KGet.md` — quick map of the kget crate (used by `apps/agent`)
+7. `04 - Agentes/Regras de Implementacao para Agentes.md` — implementation checklist
 
 ### Key Rules from the Vault
 

@@ -63,6 +63,7 @@ export class SourcesController {
 
   @Get()
   async list(@CurrentUser() user: AuthenticatedUser) {
+    await this.collection.markStaleJobs(user.organizationId);
     const sources = await this.prisma.source.findMany({
       where: { organizationId: user.organizationId },
       orderBy: { createdAt: "desc" },
@@ -89,6 +90,7 @@ export class SourcesController {
 
   @Get("report")
   async report(@CurrentUser() user: AuthenticatedUser) {
+    await this.collection.markStaleJobs(user.organizationId);
     const [sources, jobs, files] = await Promise.all([
       this.prisma.source.findMany({
         where: { organizationId: user.organizationId },

@@ -14,3 +14,9 @@ coverage
 !.env.example
 target
 **/target
+.claude/
+.openclaw
+.openclaw-cli-images
+.github
+.codex
+.vercel
