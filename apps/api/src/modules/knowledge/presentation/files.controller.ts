@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Delete,
   Get,
@@ -35,7 +36,9 @@ function inferMimeType(originalName: string, reportedMimeType: string) {
   if (lowerName.endsWith(".xml")) return "application/xml";
   if (lowerName.endsWith(".txt") || lowerName.endsWith(".md"))
     return "text/plain";
-  return "text/plain";
+  throw new BadRequestException(
+    "Unsupported file type. Upload PDF, HTML, TXT, CSV, XML, or Markdown files.",
+  );
 }
 
 @ApiTags("files")

@@ -46,6 +46,15 @@ function formatBytes(bytes: string) {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
+function errorMessage(error: unknown) {
+  const fallback = error instanceof Error ? error.message : "Upload failed";
+  const data = (error as { response?: { data?: { message?: unknown } } })
+    ?.response?.data;
+  const message = data?.message;
+  if (Array.isArray(message)) return message.join(", ");
+  return typeof message === "string" ? message : fallback;
+}
+
 function FileCard({
   file,
   onDelete,
@@ -194,6 +203,12 @@ export default function FilesPage() {
           </>
         )}
       </div>
+
+      {upload.isError && (
+        <p className="mb-6 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          {errorMessage(upload.error)}
+        </p>
+      )}
 
       {/* File list */}
       {isLoading ? (

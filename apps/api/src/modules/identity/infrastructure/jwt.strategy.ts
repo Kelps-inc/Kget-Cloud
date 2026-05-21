@@ -16,13 +16,21 @@ export interface AuthenticatedUser {
   role: string;
 }
 
+function jwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET must be configured in production");
+  }
+  return secret ?? "change-me-in-development";
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? "change-me-in-production",
+      secretOrKey: jwtSecret(),
     });
   }
 

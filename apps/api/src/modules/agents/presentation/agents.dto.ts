@@ -1,9 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from "class-validator";
 
 export class CreateAgentDto {
   @ApiProperty({ example: "Office collector" })
   @IsString()
+  @MinLength(1)
+  @MaxLength(80)
   name: string;
 }
 
@@ -65,14 +77,19 @@ export class UpdateAgentDto {
   @ApiPropertyOptional({ example: 52428800 })
   @IsOptional()
   @IsNumber()
+  @Min(1)
+  @Max(1024 * 1024 * 1024)
   maxFileBytes?: number;
 
   @ApiPropertyOptional({ example: false })
   @IsOptional()
+  @IsBoolean()
   allowLocalFiles?: boolean;
 
   @ApiPropertyOptional({ example: ["/home/user/docs"] })
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   allowedLocalRoots?: string[];
 }
 

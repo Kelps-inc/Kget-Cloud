@@ -46,6 +46,15 @@ function dateLabel(value: string | null | undefined) {
   return value ? new Date(value).toLocaleString() : "Never";
 }
 
+function errorMessage(error: unknown) {
+  const fallback = error instanceof Error ? error.message : "Request failed";
+  const data = (error as { response?: { data?: { message?: unknown } } })
+    ?.response?.data;
+  const message = data?.message;
+  if (Array.isArray(message)) return message.join(", ");
+  return typeof message === "string" ? message : fallback;
+}
+
 function SourceRow({
   source,
   onRun,
@@ -183,7 +192,7 @@ export default function MonitorPage() {
   });
 
   const createAgent = useMutation({
-    mutationFn: () => agentsApi.create({ name: agentName }),
+    mutationFn: () => agentsApi.create({ name: agentName.trim() }),
     onSuccess: (agent) => {
       setCreatedToken(agent.token);
       setAgentName("");
@@ -340,6 +349,11 @@ export default function MonitorPage() {
                   )}
                 </button>
               </form>
+              {createAgent.isError && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {errorMessage(createAgent.error)}
+                </p>
+              )}
               {createdToken && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-3">
                   <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-green-800">

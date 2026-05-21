@@ -3,6 +3,14 @@ import { Injectable } from "@nestjs/common";
 const CHUNK_SIZE = 1500; // characters (~375 tokens)
 const OVERLAP = 200;
 
+export function sanitizeDocumentText(text: string): string {
+  return text
+    .replace(/\u0000/g, "")
+    .replace(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export interface TextChunk {
   content: string;
   chunkIndex: number;
@@ -11,7 +19,7 @@ export interface TextChunk {
 @Injectable()
 export class ChunkDocumentUseCase {
   execute(text: string): TextChunk[] {
-    const cleaned = text.replace(/\s+/g, " ").trim();
+    const cleaned = sanitizeDocumentText(text);
     if (cleaned.length === 0) return [];
 
     const chunks: TextChunk[] = [];

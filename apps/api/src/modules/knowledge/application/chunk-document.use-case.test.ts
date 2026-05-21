@@ -24,4 +24,13 @@ describe("ChunkDocumentUseCase", () => {
       true,
     );
   });
+
+  it("removes nul bytes and unsafe control characters before saving chunks", () => {
+    const chunks = new ChunkDocumentUseCase().execute(
+      "first\u0000second\u0007third",
+    );
+
+    expect(chunks).toHaveLength(1);
+    expect(chunks[0].content).toBe("firstsecond third");
+  });
 });

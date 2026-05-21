@@ -9,6 +9,8 @@ import { LocalStorageProvider } from "@shared/infrastructure/storage/local-stora
 import { ProcessFileUseCase } from "@modules/knowledge/application/process-file.use-case";
 import { Prisma } from "@prisma/client";
 import * as crypto from "crypto";
+import { lookup } from "dns/promises";
+import { isIP } from "net";
 
 const SERVER_RUN_TYPES = new Set(["url"]);
 const DEFAULT_MAX_COLLECTION_BYTES = 50 * 1024 * 1024;
@@ -44,6 +46,62 @@ function fileNameFromUrl(url: string): string {
   const parsed = new URL(url);
   const lastSegment = parsed.pathname.split("/").filter(Boolean).pop();
   return lastSegment || `${parsed.hostname}.txt`;
+}
+
+function isPrivateIpv4(ip: string) {
+  const parts = ip.split(".").map(Number);
+  return (
+    parts[0] === 10 ||
+    parts[0] === 127 ||
+    (parts[0] === 100 && parts[1] >= 64 && parts[1] <= 127) ||
+    (parts[0] === 169 && parts[1] === 254) ||
+    (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+    (parts[0] === 192 && parts[1] === 168) ||
+    parts[0] === 0
+  );
+}
+
+function isPrivateIpv6(ip: string) {
+  const normalized = ip.toLowerCase();
+  if (normalized.startsWith("::ffff:")) {
+    return isPrivateIpv4(normalized.replace("::ffff:", ""));
+  }
+  return (
+    normalized === "::1" ||
+    normalized === "::" ||
+    normalized.startsWith("fc") ||
+    normalized.startsWith("fd") ||
+    normalized.startsWith("fe80:")
+  );
+}
+
+function isPrivateAddress(address: string) {
+  const family = isIP(address);
+  if (family === 4) return isPrivateIpv4(address);
+  if (family === 6) return isPrivateIpv6(address);
+  return false;
+}
+
+async function assertPublicHttpUrl(url: string) {
+  const parsed = new URL(url);
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new BadRequestException("Only HTTP and HTTPS URLs are supported");
+  }
+  if (parsed.username || parsed.password) {
+    throw new BadRequestException("URL credentials are not supported");
+  }
+
+  const host = parsed.hostname.toLowerCase();
+  if (host === "localhost" || host.endsWith(".localhost")) {
+    throw new BadRequestException("Localhost URLs are not allowed");
+  }
+
+  const addresses = isIP(host)
+    ? [{ address: host }]
+    : await lookup(host, { all: true, verbatim: false });
+  if (addresses.some(({ address }) => isPrivateAddress(address))) {
+    throw new BadRequestException("Private network URLs are not allowed");
+  }
 }
 
 @Injectable()
@@ -133,6 +191,7 @@ export class CollectionService {
 
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
+      await assertPublicHttpUrl(url);
       await this.log(job.organizationId, job.id, "info", `Downloading ${url}`);
       const controller = new AbortController();
       timeout = setTimeout(() => controller.abort(), collectionTimeoutMs());
@@ -252,6 +311,7 @@ export class CollectionService {
     organizationId: string,
     jobId: string,
     input: {
+      agentId: string;
       originalName: string;
       mimeType: string;
       buffer: Buffer;
@@ -260,7 +320,7 @@ export class CollectionService {
     },
   ) {
     const job = await this.prisma.downloadJob.findFirst({
-      where: { id: jobId, organizationId },
+      where: { id: jobId, organizationId, agentId: input.agentId },
     });
     if (!job) throw new NotFoundException("Job not found");
 

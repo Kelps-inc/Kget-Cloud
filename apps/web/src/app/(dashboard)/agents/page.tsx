@@ -65,6 +65,15 @@ function bytesToMb(bytes: string | null | undefined) {
   return Math.round(Number(bytes ?? 52428800) / (1024 * 1024));
 }
 
+function errorMessage(error: unknown) {
+  const fallback = error instanceof Error ? error.message : "Request failed";
+  const data = (error as { response?: { data?: { message?: unknown } } })
+    ?.response?.data;
+  const message = data?.message;
+  if (Array.isArray(message)) return message.join(", ");
+  return typeof message === "string" ? message : fallback;
+}
+
 // ── Agent list card ──────────────────────────────────────────────────────────
 
 function AgentCard({
@@ -501,7 +510,7 @@ export default function AgentsPage() {
   });
 
   const createAgent = useMutation({
-    mutationFn: () => agentsApi.create({ name: agentName }),
+    mutationFn: () => agentsApi.create({ name: agentName.trim() }),
     onSuccess: (agent) => {
       setCreatedToken(agent.token);
       setAgentName("");
@@ -577,6 +586,12 @@ export default function AgentsPage() {
                 )}
               </button>
             </form>
+
+            {createAgent.isError && (
+              <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                {errorMessage(createAgent.error)}
+              </p>
+            )}
 
             {createdToken && (
               <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">

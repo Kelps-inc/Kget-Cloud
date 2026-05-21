@@ -26,8 +26,9 @@ function agentOfflineAfterMs() {
 }
 
 function serializeAgent(agent: any) {
+  const { tokenHash: _tokenHash, ...safeAgent } = agent;
   return {
-    ...agent,
+    ...safeAgent,
     maxFileBytes: agent.maxFileBytes?.toString() ?? null,
     downloadJobs: agent.downloadJobs?.map((j: any) => ({
       ...j,

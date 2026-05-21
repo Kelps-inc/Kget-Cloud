@@ -66,17 +66,27 @@ export class AgentRuntimeController {
     @Param("id") id: string,
     @CurrentAgent() agent: AuthenticatedAgent,
   ) {
-    await this.prisma.downloadJob.findFirstOrThrow({
+    const result = await this.prisma.downloadJob.updateMany({
       where: {
         id,
         organizationId: agent.organizationId,
         status: "queued",
         OR: [{ agentId: agent.id }, { agentId: null }],
       },
-    });
-    const job = await this.prisma.downloadJob.update({
-      where: { id },
       data: { status: "running", agentId: agent.id, startedAt: new Date() },
+    });
+    if (result.count !== 1) {
+      await this.prisma.downloadJob.findFirstOrThrow({
+        where: {
+          id,
+          organizationId: agent.organizationId,
+          status: "queued",
+          OR: [{ agentId: agent.id }, { agentId: null }],
+        },
+      });
+    }
+    const job = await this.prisma.downloadJob.findUniqueOrThrow({
+      where: { id },
       include: { source: true },
     });
     await this.collection.log(
@@ -95,7 +105,7 @@ export class AgentRuntimeController {
     @CurrentAgent() agent: AuthenticatedAgent,
   ) {
     await this.prisma.downloadJob.findFirstOrThrow({
-      where: { id, organizationId: agent.organizationId },
+      where: { id, organizationId: agent.organizationId, agentId: agent.id },
     });
     await this.collection.log(
       agent.organizationId,
@@ -116,7 +126,7 @@ export class AgentRuntimeController {
     @CurrentAgent() agent: AuthenticatedAgent,
   ) {
     await this.prisma.downloadJob.findFirstOrThrow({
-      where: { id, organizationId: agent.organizationId },
+      where: { id, organizationId: agent.organizationId, agentId: agent.id },
     });
     await this.collection.log(agent.organizationId, id, dto.level, dto.message);
     return { ok: true };
@@ -129,6 +139,7 @@ export class AgentRuntimeController {
     @CurrentAgent() agent: AuthenticatedAgent,
   ) {
     return this.collection.completeAgentJob(agent.organizationId, id, {
+      agentId: agent.id,
       originalName: dto.originalName,
       mimeType: dto.mimeType,
       buffer: Buffer.from(dto.base64, "base64"),
@@ -144,7 +155,7 @@ export class AgentRuntimeController {
     @CurrentAgent() agent: AuthenticatedAgent,
   ) {
     await this.prisma.downloadJob.findFirstOrThrow({
-      where: { id, organizationId: agent.organizationId },
+      where: { id, organizationId: agent.organizationId, agentId: agent.id },
     });
     await this.prisma.downloadJob.update({
       where: { id },
