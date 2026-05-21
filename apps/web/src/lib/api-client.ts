@@ -97,10 +97,26 @@ export const sourcesApi = {
 export const agentsApi = {
   list: () => apiClient.get<Agent[]>("/api/agents").then((r) => r.data),
 
+  get: (id: string) =>
+    apiClient.get<AgentDetail>(`/api/agents/${id}`).then((r) => r.data),
+
   create: (data: { name: string }) =>
     apiClient
       .post<Agent & { token: string }>("/api/agents", data)
       .then((r) => r.data),
+
+  update: (
+    id: string,
+    data: {
+      name?: string;
+      maxFileBytes?: number;
+      allowLocalFiles?: boolean;
+      allowedLocalRoots?: string[];
+    },
+  ) => apiClient.patch<Agent>(`/api/agents/${id}`, data).then((r) => r.data),
+
+  delete: (id: string) =>
+    apiClient.delete(`/api/agents/${id}`).then((r) => r.data),
 };
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -207,6 +223,27 @@ export interface Agent {
   machineName: string | null;
   os: string | null;
   createdAt: string;
+  maxFileBytes: string | null;
+  allowLocalFiles: boolean;
+  allowedLocalRoots: string[];
+  _count?: { downloadJobs: number; sources: number };
+}
+
+export interface AgentJob {
+  id: string;
+  status: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  errorMessage: string | null;
+  bytesDownloaded: string | null;
+  durationMs: number | null;
+  createdAt: string;
+  source: { id: string; name: string } | null;
+}
+
+export interface AgentDetail extends Agent {
+  downloadJobs: AgentJob[];
+  sources: { id: string; name: string; type: string; enabled: boolean }[];
 }
 
 export interface CollectionReport {

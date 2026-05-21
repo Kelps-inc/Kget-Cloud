@@ -56,6 +56,26 @@ export class FailJobDto {
   errorMessage: string;
 }
 
+export class UpdateAgentDto {
+  @ApiPropertyOptional({ example: "Office collector" })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @ApiPropertyOptional({ example: 52428800 })
+  @IsOptional()
+  @IsNumber()
+  maxFileBytes?: number;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  allowLocalFiles?: boolean;
+
+  @ApiPropertyOptional({ example: ["/home/user/docs"] })
+  @IsOptional()
+  allowedLocalRoots?: string[];
+}
+
 export class JobLogDto {
   @ApiProperty({ example: "info" })
   @IsString()

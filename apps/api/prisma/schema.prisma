@@ -41,16 +41,19 @@ model User {
 }
 
 model Agent {
-  id             String    @id @default(cuid())
-  organizationId String
-  name           String
-  tokenHash      String    @unique
-  status         String    @default("offline")
-  lastSeenAt     DateTime?
-  version        String?
-  machineName    String?
-  os             String?
-  createdAt      DateTime  @default(now())
+  id                 String    @id @default(cuid())
+  organizationId     String
+  name               String
+  tokenHash          String    @unique
+  status             String    @default("offline")
+  lastSeenAt         DateTime?
+  version            String?
+  machineName        String?
+  os                 String?
+  createdAt          DateTime  @default(now())
+  maxFileBytes       BigInt    @default(52428800)
+  allowLocalFiles    Boolean   @default(false)
+  allowedLocalRoots  String[]  @default([])
 
   organization Organization  @relation(fields: [organizationId], references: [id])
   sources      Source[]

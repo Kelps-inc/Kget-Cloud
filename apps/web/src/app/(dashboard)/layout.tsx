@@ -4,10 +4,18 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { isAuthenticated, clearAuth, getUser } from "@/lib/auth";
-import { FileText, MessageSquare, LogOut, Radar, Zap } from "lucide-react";
+import {
+  FileText,
+  MessageSquare,
+  LogOut,
+  Radar,
+  Server,
+  Zap,
+} from "lucide-react";
 
 const NAV = [
   { href: "/monitor", label: "Monitor", icon: Radar },
+  { href: "/agents", label: "Agents", icon: Server },
   { href: "/files", label: "Documents", icon: FileText },
   { href: "/chat", label: "Chat", icon: MessageSquare },
 ];
